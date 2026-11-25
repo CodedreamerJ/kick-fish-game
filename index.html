@@ -1,0 +1,408 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kick Angler's Club — 200-Species Fishing Companion</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #07131f; color: #f1f5f9; min-height: 100vh; padding-bottom: 60px; }
+    header { background: linear-gradient(135deg, #0b253c, #0f172a); padding: 20px; border-bottom: 1px solid #1e3a5f; text-align: center; }
+    header h1 { font-size: 26px; color: #38bdf8; letter-spacing: 0.5px; }
+    header p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+    .search-bar { max-width: 520px; margin: 16px auto 0; display: flex; gap: 8px; }
+    .search-bar input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 14px; }
+    .search-bar button { padding: 10px 18px; border-radius: 8px; border: none; background: #0284c7; color: #fff; font-weight: 700; cursor: pointer; }
+    .search-bar button:hover { background: #0369a1; }
+    .container { max-width: 1080px; margin: 20px auto; padding: 0 16px; }
+    .profile-card { background: #0f2136; border: 1px solid #1e3a5f; border-radius: 14px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .stat-box { background: #091624; padding: 12px; border-radius: 10px; border: 1px solid #172e4a; }
+    .stat-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.6px; }
+    .stat-val { font-size: 20px; font-weight: 800; color: #f8fafc; margin-top: 4px; }
+    .progress-wrap { grid-column: 1 / -1; }
+    .progress-bg { width: 100%; height: 10px; background: #091624; border-radius: 999px; overflow: hidden; margin-top: 6px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #34d399); width: 0%; transition: width 0.4s ease; }
+    .aquarium { position: relative; height: 150px; background: linear-gradient(180deg, #0c3b5e 0%, #061b2e 100%); border-radius: 14px; border: 1px solid #1e3a5f; overflow: hidden; margin-bottom: 20px; }
+    .aquarium-label { position: absolute; top: 10px; left: 14px; font-size: 12px; color: #7dd3fc; font-weight: 700; z-index: 2; }
+    .swimmer { position: absolute; font-size: 32px; animation: swim linear infinite; user-select: none; }
+    @keyframes swim {
+      0% { left: -10%; transform: scaleX(1); }
+      49% { transform: scaleX(1); }
+      50% { left: 105%; transform: scaleX(-1); }
+      99% { transform: scaleX(-1); }
+      100% { left: -10%; transform: scaleX(1); }
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab { padding: 10px 18px; border-radius: 10px; border: 1px solid #1e3a5f; background: #0f2136; color: #cbd5e1; font-weight: 700; cursor: pointer; }
+    .tab.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .f-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid #334155; background: #0f172a; color: #cbd5e1; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: capitalize; }
+    .f-btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; }
+    .card { background: #0f2136; border: 1px solid #1e3a5f; border-radius: 12px; padding: 14px; text-align: center; position: relative; }
+    .card.locked { opacity: 0.45; }
+    .tier-tag { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+    .t-trash { background: #334155; color: #cbd5e1; }
+    .t-common { background: #1e3a8a; color: #93c5fd; }
+    .t-uncommon { background: #065f46; color: #6ee7b7; }
+    .t-rare { background: #5b21b6; color: #ddd6fe; }
+    .t-legendary { background: #92400e; color: #fde68a; }
+    .t-mythic { background: #9f1239; color: #fecdd3; }
+    .t-cosmic { background: #312e81; color: #c7d2fe; border: 1px solid #818cf8; }
+    .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+    .store-card { background: #0f2136; border: 1px solid #1e3a5f; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+    .store-card h4 { font-size: 16px; color: #38bdf8; margin-bottom: 6px; }
+    .store-card p { font-size: 13px; color: #94a3b8; margin-bottom: 12px; line-height: 1.4; }
+    .buy-btn { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #10b981; color: #052e16; font-weight: 800; cursor: pointer; }
+    .buy-btn:hover { background: #34d399; }
+    table { width: 100%; border-collapse: collapse; background: #0f2136; border-radius: 12px; overflow: hidden; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #1e3a5f; font-size: 14px; }
+    th { background: #091624; color: #38bdf8; font-size: 12px; text-transform: uppercase; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #0284c7; color: #fff; padding: 12px 18px; border-radius: 10px; font-weight: 700; box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: none; z-index: 99; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎣 Kick Angler's Club</h1>
+    <p>200-Species Fishing Dex, Live Aquarium, Store &amp; Shared Kicklet Economy</p>
+    <div class="search-bar">
+      <input id="searchUser" type="text" placeholder="Enter your Kick username..." />
+      <button onclick="searchAngler()">Load Angler</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="profile-card">
+      <div class="stat-box">
+        <div class="stat-label">Angler</div>
+        <div class="stat-val" id="uiUser">Guest Angler</div>
+        <div style="font-size:12px; color:#38bdf8; margin-top:2px;" id="uiBadge">🎣 Angler</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Points Balance</div>
+        <div class="stat-val" id="uiPoints">5,000</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Abyssal Pearls</div>
+        <div class="stat-val" id="uiPearls">100</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Rod &amp; Bait</div>
+        <div class="stat-val">Lv.<span id="uiRod">1</span> | <span id="uiBaits">0</span> 🪱</div>
+      </div>
+      <div class="progress-wrap">
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:#cbd5e1;">
+          <span>200-Species Dex Completion</span>
+          <span id="uiDexText">0 / 200</span>
+        </div>
+        <div class="progress-bg"><div class="progress-fill" id="uiDexBar"></div></div>
+      </div>
+    </div>
+
+    <div class="aquarium" id="tankContainer">
+      <div class="aquarium-label">🌊 Live Catch Tank (Recent Discoveries)</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="openTab('dexView', this)">📖 200-Fish Dex</button>
+      <button class="tab" onclick="openTab('storeView', this)">🛒 Tackle &amp; Pearl Store</button>
+      <button class="tab" onclick="openTab('lbView', this)">🏆 Top Anglers</button>
+    </div>
+
+    <div id="dexView" class="view active">
+      <div class="filters">
+        <button class="f-btn active" onclick="filterDex('all', this)">All (200)</button>
+        <button class="f-btn" onclick="filterDex('caught', this)">Caught</button>
+        <button class="f-btn" onclick="filterDex('trash', this)">Trash (20)</button>
+        <button class="f-btn" onclick="filterDex('common', this)">Common (50)</button>
+        <button class="f-btn" onclick="filterDex('uncommon', this)">Uncommon (50)</button>
+        <button class="f-btn" onclick="filterDex('rare', this)">Rare (40)</button>
+        <button class="f-btn" onclick="filterDex('legendary', this)">Legendary (25)</button>
+        <button class="f-btn" onclick="filterDex('mythic', this)">Mythic (10)</button>
+        <button class="f-btn" onclick="filterDex('cosmic', this)">Cosmic (5)</button>
+      </div>
+      <div class="grid" id="dexGrid"></div>
+    </div>
+
+    <div id="storeView" class="view">
+      <p style="font-size:13px; color:#94a3b8; margin-bottom:14px;">
+        Buy items here to queue them on your profile, then type <strong>!claim</strong> in Kick chat to sync with your Kicklet loyalty balance!
+      </p>
+      <div class="store-grid">
+        <div class="store-card">
+          <div>
+            <h4>🪱 Lucky Bait Pack (x5)</h4>
+            <p>Boosts Rare, Legendary, Mythic, and Cosmic catch odds for your next 5 casts.</p>
+          </div>
+          <button class="buy-btn" onclick="buyStoreItem('bait', 500, 'points')">Buy — 500 Points</button>
+        </div>
+        <div class="store-card">
+          <div>
+            <h4>🎣 Carbon Rod Upgrade</h4>
+            <p>Permanently increases your Rod Level (+1) for heavier catches and higher point payouts.</p>
+          </div>
+          <button class="buy-btn" onclick="buyStoreItem('rod', 2500, 'points')">Buy — 2,500 Points</button>
+        </div>
+        <div class="store-card">
+          <div>
+            <h4>👑 VIP Angler Badge</h4>
+            <p>Equips the exclusive VIP Angler title on your profile and leaderboard row.</p>
+          </div>
+          <button class="buy-btn" onclick="buyStoreItem('badge', 50, 'pearls')">Buy — 50 Pearls</button>
+        </div>
+        <div class="store-card">
+          <div>
+            <h4>🧰 Mystery Abyssal Chest</h4>
+            <p>Unlocks a random bonus cache of 1,000 to 25,000 Kicklet Points!</p>
+          </div>
+          <button class="buy-btn" onclick="buyStoreItem('chest', 75, 'pearls')">Open — 75 Pearls</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="lbView" class="view">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Angler</th>
+            <th>Badge</th>
+            <th>Dex Caught</th>
+            <th>Rod Lv.</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // 1. PASTE YOUR SUPABASE CREDENTIALS HERE
+      const SUPABASE_URL = "https://igyrnrwpcjlmwbdcxcht.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_COHlE_08pxFV_S02ItzX1A_VlCceUSr";
+
+
+
+
+    // 2. FULL 200-SPECIES VISUAL CATALOG
+    const FULL_200 = [
+      ...["Old Boot|🥾","Rusty Tin Can|🥫","Flat Tire|🛞","Slimy Seaweed|🌿","Soggy Sock|🧦","Broken Umbrella|☂️","Rusted Hook|🪝","Bent Spoon|🥄","Moldy Sponge|🧽","Plastic Bag|🛍️","Dead Watch|⌚","Rusted Key|🗝️","Cracked Mug|☕","Straw Hat|👒","Tangled Net|🕸️","Leaky Bucket|🪣","Driftwood|🪵","Empty Clam|🐚","Bottle Cap|🪙","Wet Newspaper|📰"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "trash" })),
+      ...["Silver Sardine|🐟","Anchovy|🐟","Goldfish|🐠","Rainbow Trout|🐟","Yellow Perch|🐟","Channel Catfish|🐋","Bluegill|🐟","Northern Pike|🐊","Atlantic Herring|🐟","Chub Mackerel|🐟","Horse Mackerel|🐟","Sea Bream|🐟","Red Mullet|🐠","Common Sole|🥞","European Bass|🐟","Hake|🐟","Atlantic Cod|🐟","Whitebait|🐟","Bullhead|🐟","Common Carp|🎏","Nile Tilapia|🐟","Pumpkinseed|🐠","Barbel|🐟","Tench|🐟","Gudgeon|🐟","Garfish|🗡️","Striped Mullet|🐟","Pandora Bream|🐠","White Seabream|🐟","Bogue|🐟","Pencilfish|✏️","Neon Tetra|💎","Wild Guppy|🐠","Black Molly|🖤","Red Platy|❤️","Zebra Danio|🦓","Hatchetfish|🪓","Harlequin Rasbora|🐠","Clown Loach|🤡","Corydoras|🐟","Zebrafish|🦓","Paradise Fish|🌴","Blue Gourami|💙","Glass Catfish|🔮","Leaffish|🍃","Archerfish|🏹","Pea Puffer|🐡","Tigerfish|🐯","Silver Dollar|💿","Ghost Knifefish|🔪"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "common" })),
+      ...["King Salmon|🍣","Yellowfin Tuna|🐟","Swordfish|⚔️","Mahi-Mahi|🐠","Red Lionfish|🦁","Electric Eel|⚡","Spotted Eagle Ray|🦅","Clownfish|🐠","Blue Tang|💙","Queen Angelfish|👼","Porcupine Puffer|🐡","Great Barracuda|🦈","Scorpionfish|🦂","Green Moray Eel|🐍","Parrotfish|🦜","Triggerfish|🔫","Boxfish|📦","Stonefish|🪨","Toadfish|🐸","Batfish|🦇","Trumpetfish|🎺","Cornetfish|📯","Lined Seahorse|🐴","Leafy Seadragon|🐉","Pipefish|🪈","Flying Fish|🕊️","Remora|🧲","Pilot Fish|✈️","Roosterfish|🐓","Sailfish|⛵","Beluga Sturgeon|🐟","Paddlefish|🏓","Alligator Gar|🐊","Arapaima|🦕","Red Piranha|🦷","Goliath Tigerfish|🐯","Zebra Moray|🦓","Wolffish|🐺","Monkfish|👹","Lanternfish|🏮","Viperfish|🐍","Abyssal Hatchet|🪓","Gulper Eel|😮","Black Dragonfish|🐲","Fangtooth|🧛","Blacktip Shark|🦈","Leopard Shark|🐆","Nurse Shark|🩺","Smalltooth Sawfish|🪚","Bowmouth Guitarfish|🎸"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "uncommon" })),
+      ...["Great White Shark|🦈","Hammerhead Shark|🔨","Tiger Shark|🐯","Bull Shark|🐂","Mako Shark|🏎️","Thresher Shark|🦈","Basking Shark|🐋","Whale Shark|🐳","Giant Oarfish|🎗️","Living Coelacanth|🦴","Giant Squid|🦑","Mimic Octopus|🐙","Blue-Ringed Octopus|💍","Chambered Nautilus|🐚","Flamboyant Cuttlefish|🌈","Bluefin Tuna|💎","Blue Marlin|🗡️","Black Marlin|🖤","Ocean Sunfish|☀️","Giant Oceanic Manta|🛸","Beluga Whale|🤍","Arctic Narwhal|🦄","Apex Orca|🐼","Pink Dolphin|🐬","Harbor Porpoise|🐬","Leatherback Turtle|🐢","Hawksbill Turtle|🐢","Japanese Spider Crab|🦀","Electric Blue Lobster|🦞","Albino Lobster|👻","Kohaku Koi|🎏","Tancho Koi|🇯🇵","Silver Arowana|🥈","24K Golden Arowana|🥇","Heckel Discus|🥏","Motoro Ray|🥞","Albino Knifefish|🗡️","Peters Elephantnose|🐘","Australian Lungfish|🫁","Pacific Hagfish|🪱"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "rare" })),
+      ...["Baby Kraken|🦑","Trench Leviathan|🐉","Midgard Serpent|🐍","Ancient Megalodon|🦈","Armored Dunkleosteus|🛡️","Buzzsaw Helicoprion|⚙️","Liopleurodon|🦖","Apex Mosasaurus|🐊","Plesiosaurus|🦕","Ichthyosaurus|🐬","Magma Phoenix Fish|🔥","Eastern Water Dragon|🐲","Coral Reef Siren|🧜‍♀️","Abyssal Triton|🔱","Jade Emperor Fish|🟢","Celestial Dragon Koi|✨","Abyssal Ghost Shark|👻","Immortal Jellyfish|🪼","Diamond Crystal Crab|💎","Ancient Lion Turtle|🏝️","Starlight Whale|🌠","Deep-Sea Chimera|🦁","Excalibur Swordfish|🗡️","Zeus Thunder Eel|⚡","Poseidon Imperial Manta|👑"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "legendary" })),
+      ...["[MYTHIC] Abyssal Gatekeeper|⛩️","[MYTHIC] Seven-Seas Hydra|🐲","[MYTHIC] Spirit of the Ocean|🌊","[MYTHIC] Living Coral Colossus|🗿","[MYTHIC] Deep-Sea Phoenix|🐦‍🔥","[MYTHIC] Mariana Beast|👁️","[MYTHIC] Glacial Frost Titan|❄️","[MYTHIC] Atlantean Sovereign|🏛️","[MYTHIC] Aquatic Quetzalcoatl|🪶","[MYTHIC] Slumbering Cthulhu|🐙"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "mythic" })),
+      ...["[COSMIC] Galaxy Devourer|🌌","[COSMIC] Nebula Angler|🪐","[COSMIC] Astral Leviathan|☄️","[COSMIC] Void Star-Dragon|🐉","[COSMIC] Living Pisces Constellation|♓"].map(x => ({ n: x.split("|")[0], i: x.split("|")[1], t: "cosmic" }))
+    ];
+
+    let currentProfile = {
+      username: "Guest Angler",
+      points: 5000,
+      pearls: 100,
+      rod_level: 1,
+      baits: 0,
+      pending_spend: 0,
+      pending_add: 0,
+      dex: ["Great White Shark", "Baby Kraken", "[COSMIC] Galaxy Devourer"],
+      records: { "Great White Shark": 184.5, "Baby Kraken": 412.0, "[COSMIC] Galaxy Devourer": 4820.5 },
+      equipped_badge: "👑 VIP Angler"
+    };
+
+    let activeFilter = "all";
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.innerText = msg;
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3500);
+    }
+
+    function openTab(id, btn) {
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      btn.classList.add("active");
+    }
+
+    function renderProfile() {
+      document.getElementById("uiUser").innerText = currentProfile.username;
+      document.getElementById("uiBadge").innerText = currentProfile.equipped_badge || "🎣 Angler";
+      document.getElementById("uiPoints").innerText = Number(currentProfile.points || 0).toLocaleString();
+      document.getElementById("uiPearls").innerText = Number(currentProfile.pearls || 0).toLocaleString();
+      document.getElementById("uiRod").innerText = currentProfile.rod_level || 1;
+      document.getElementById("uiBaits").innerText = currentProfile.baits || 0;
+      const count = (currentProfile.dex || []).length;
+      document.getElementById("uiDexText").innerText = `${count} / 200`;
+      document.getElementById("uiDexBar").style.width = `${(count / 200) * 100}%`;
+
+      const tank = document.getElementById("tankContainer");
+      tank.querySelectorAll(".swimmer").forEach(e => e.remove());
+      const caughtObjects = FULL_200.filter(f => (currentProfile.dex || []).includes(f.n)).slice(-8);
+      caughtObjects.forEach((f, idx) => {
+        const el = document.createElement("div");
+        el.className = "swimmer";
+        el.innerText = f.i;
+        el.style.top = `${22 + (idx * 14) % 65}%`;
+        el.style.animationDuration = `${10 + (idx % 6) * 2}s`;
+        el.style.animationDelay = `${idx * 1.3}s`;
+        tank.appendChild(el);
+      });
+      renderDexGrid();
+    }
+
+    function renderDexGrid() {
+      const grid = document.getElementById("dexGrid");
+      grid.innerHTML = "";
+      const caughtSet = new Set(currentProfile.dex || []);
+      const records = currentProfile.records || {};
+      FULL_200.forEach(fish => {
+        const isCaught = caughtSet.has(fish.n);
+        if (activeFilter === "caught" && !isCaught) return;
+        if (activeFilter !== "all" && activeFilter !== "caught" && fish.t !== activeFilter) return;
+        const bestW = records[fish.n] ? `${records[fish.n]} lbs` : "Undiscovered";
+        grid.innerHTML += `
+          <div class="card ${isCaught ? "" : "locked"}">
+            <span class="tier-tag t-${fish.t}">${fish.t}</span>
+            <div style="font-size:38px; margin:4px 0;">${isCaught ? fish.i : "❓"}</div>
+            <div style="font-weight:800; font-size:14px;">${isCaught ? fish.n : "??? Mystery Fish"}</div>
+            <div style="font-size:12px; color:#94a3b8; margin-top:4px;">Best: ${bestW}</div>
+          </div>`;
+      });
+    }
+
+    function filterDex(type, btn) {
+      activeFilter = type;
+      document.querySelectorAll(".f-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderDexGrid();
+    }
+
+    async function searchAngler() {
+      const name = document.getElementById("searchUser").value.trim().toLowerCase();
+      if (!name) return showToast("Enter a Kick username first!");
+      await loadAnglerFromDB(name);
+    }
+
+    async function loadAnglerFromDB(username) {
+      if (!SUPABASE_URL.startsWith("http")) {
+        showToast("Demo mode active — connect Supabase URL to load live anglers.");
+        return renderProfile();
+      }
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/anglers?username=eq.${encodeURIComponent(username)}`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        const rows = await res.json();
+        if (rows && rows.length > 0) {
+          currentProfile = rows[0];
+          showToast(`Loaded angler: ${currentProfile.username}`);
+        } else {
+          showToast("Angler not found yet — cast !fish in chat first!");
+        }
+      } catch (err) {
+        showToast("Error loading profile from database.");
+      }
+      renderProfile();
+    }
+
+    async function buyStoreItem(item, cost, currency) {
+      if (currency === "points" && (currentProfile.points || 0) < cost) {
+        return showToast("Not enough Kicklet Points!");
+      }
+      if (currency === "pearls" && (currentProfile.pearls || 0) < cost) {
+        return showToast("Not enough Abyssal Pearls!");
+      }
+
+      let pendingSpend = currentProfile.pending_spend || 0;
+      let pendingAdd = currentProfile.pending_add || 0;
+
+      if (currency === "points") {
+        currentProfile.points -= cost;
+        pendingSpend += cost;
+      } else {
+        currentProfile.pearls -= cost;
+      }
+
+      if (item === "bait") currentProfile.baits = (currentProfile.baits || 0) + 5;
+      if (item === "rod") currentProfile.rod_level = (currentProfile.rod_level || 1) + 1;
+      if (item === "badge") currentProfile.equipped_badge = "👑 VIP Angler";
+      if (item === "chest") {
+        const prizes = new Array(1000, 2500, 5000, 10000, 25000);
+        const reward = prizes[Math.floor(Math.random() * prizes.length)];
+        currentProfile.points += reward;
+        pendingAdd += reward;
+        showToast(`Mystery Chest opened! +${reward.toLocaleString()} Points! Type !claim in chat.`);
+      } else {
+        showToast("Purchased! Type !claim in Kick chat to sync your balance.");
+      }
+
+      currentProfile.pending_spend = pendingSpend;
+      currentProfile.pending_add = pendingAdd;
+
+      if (SUPABASE_URL.startsWith("http") && currentProfile.username !== "Guest Angler") {
+        await fetch(`${SUPABASE_URL}/rest/v1/anglers?username=eq.${encodeURIComponent(currentProfile.username)}`, {
+          method: "PATCH",
+          headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            points: currentProfile.points,
+            pearls: currentProfile.pearls,
+            rod_level: currentProfile.rod_level,
+            baits: currentProfile.baits,
+            equipped_badge: currentProfile.equipped_badge,
+            pending_spend: currentProfile.pending_spend,
+            pending_add: currentProfile.pending_add
+          })
+        });
+      }
+      renderProfile();
+    }
+
+    async function loadLeaderboard() {
+      const tbody = document.getElementById("lbBody");
+      if (!SUPABASE_URL.startsWith("http")) {
+        tbody.innerHTML = `<tr><td>#1</td><td>${currentProfile.username}</td><td>${currentProfile.equipped_badge}</td><td>${currentProfile.dex.length}/200</td><td>Lv.${currentProfile.rod_level}</td><td>${currentProfile.points.toLocaleString()}</td></tr>`;
+        return;
+      }
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/anglers?select=*&order=points.desc&limit=15`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        const rows = await res.json();
+        tbody.innerHTML = rows.map((r, idx) => `
+          <tr>
+            <td>#${idx + 1}</td>
+            <td><strong>${r.username}</strong></td>
+            <td>${r.equipped_badge || "🎣 Angler"}</td>
+            <td>${(r.dex || []).length} / 200</td>
+            <td>Lv.${r.rod_level || 1}</td>
+            <td>${Number(r.points || 0).toLocaleString()}</td>
+          </tr>
+        `).join("");
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6">Unable to load leaderboard.</td></tr>`;
+      }
+    }
+
+    window.onload = () => {
+      const params = new URLSearchParams(window.location.search);
+      const userParam = params.get("user");
+      if (userParam) {
+        document.getElementById("searchUser").value = userParam;
+        loadAnglerFromDB(userParam.toLowerCase());
+      } else {
+        renderProfile();
+      }
+      loadLeaderboard();
+    };
+  </script>
+</body>
+</html>
